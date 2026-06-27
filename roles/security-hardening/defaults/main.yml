@@ -6,7 +6,7 @@ management_network: "10.0.0.0/8"
 
 # CIS Benchmark kernel parameters
 kernel_hardening_params:
-  - { key: "net.ipv4.ip_forward",                   value: "0" }
+  - { key: "net.ipv4.ip_forward",                    value: "0" }
   - { key: "net.ipv4.conf.all.send_redirects",       value: "0" }
   - { key: "net.ipv4.conf.default.send_redirects",   value: "0" }
   - { key: "net.ipv4.conf.all.accept_redirects",     value: "0" }
