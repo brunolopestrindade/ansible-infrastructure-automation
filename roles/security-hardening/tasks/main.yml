@@ -1,0 +1,88 @@
+---
+# roles/security-hardening/tasks/main.yml
+# CIS Benchmark Level 1 controls for Ubuntu 22.04 / RHEL 8+.
+# ALWAYS run with --check first in production.
+
+- name: Harden SSH daemon configuration
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+    validate: /usr/sbin/sshd -t -f %s
+  notify: Restart sshd
+  tags: [security, ssh]
+
+- name: Install and configure fail2ban
+  ansible.builtin.package:
+    name: fail2ban
+    state: present
+  tags: [security, fail2ban]
+
+- name: Deploy fail2ban jail configuration
+  ansible.builtin.template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart fail2ban
+  tags: [security, fail2ban]
+
+- name: Enable and start fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    enabled: true
+    state: started
+  tags: [security, fail2ban]
+
+- name: Apply kernel hardening parameters (sysctl)
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/99-hardening.conf
+    reload: true
+  loop: "{{ kernel_hardening_params }}"
+  tags: [security, kernel]
+
+- name: Install and enable auditd
+  ansible.builtin.package:
+    name: auditd
+    state: present
+  tags: [security, audit]
+
+- name: Deploy audit rules
+  ansible.builtin.template:
+    src: audit.rules.j2
+    dest: /etc/audit/rules.d/hardening.rules
+    owner: root
+    group: root
+    mode: '0640'
+  notify: Restart auditd
+  tags: [security, audit]
+
+- name: Configure UFW — default deny incoming
+  community.general.ufw:
+    state: enabled
+    direction: incoming
+    policy: deny
+  when: ansible_os_family == "Debian"
+  tags: [security, firewall]
+
+- name: Configure UFW — allow SSH from management network only
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port | default('22') }}"
+    src: "{{ management_network }}"
+  when: ansible_os_family == "Debian"
+  tags: [security, firewall]
+
+- name: Allow group-specific ports via UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+  loop: "{{ allowed_ports | default([]) }}"
+  when: ansible_os_family == "Debian"
+  tags: [security, firewall]

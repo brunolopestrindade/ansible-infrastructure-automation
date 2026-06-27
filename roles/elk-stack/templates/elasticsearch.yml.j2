@@ -1,0 +1,23 @@
+# roles/elk-stack/templates/elasticsearch.yml.j2
+# Managed by Ansible — do not edit manually.
+# Source: roles/elk-stack/templates/elasticsearch.yml.j2
+
+cluster.name: {{ elasticsearch_cluster_name }}
+node.name: {{ inventory_hostname }}
+
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+
+network.host: ["localhost", "{{ ansible_default_ipv4.address }}"]
+http.port: {{ elasticsearch_http_port }}
+transport.port: {{ elasticsearch_transport_port }}
+
+# Security (basic, no TLS for internal-only deployments)
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+
+# Monitoring
+xpack.monitoring.collection.enabled: true
+
+# Discovery
+discovery.type: single-node

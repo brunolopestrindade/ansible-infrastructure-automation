@@ -1,0 +1,33 @@
+---
+# site.yml — Master playbook
+# Applies all roles to the correct groups in dependency order.
+# Usage: ansible-playbook -i inventory/staging playbooks/site.yml --check
+
+- name: Apply common baseline to all servers
+  hosts: all
+  become: true
+  roles:
+    - common
+    - security-hardening
+  tags: [always, common]
+
+- name: Configure web servers
+  hosts: webservers
+  become: true
+  roles:
+    - nginx
+  tags: [web, nginx]
+
+- name: Configure database servers
+  hosts: databases
+  become: true
+  roles:
+    - mysql-ha
+  tags: [database, mysql]
+
+- name: Deploy monitoring stack
+  hosts: monitoring
+  become: true
+  roles:
+    - elk-stack
+  tags: [monitoring, elk]

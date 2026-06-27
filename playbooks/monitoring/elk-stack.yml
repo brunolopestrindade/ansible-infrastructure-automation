@@ -1,0 +1,49 @@
+---
+# monitoring/elk-stack.yml
+# Deploys Elasticsearch, Logstash, Kibana, and Filebeat agents.
+# Filebeat is pushed to ALL managed hosts; ELK stack to monitoring group only.
+#
+# Usage:
+#   ansible-playbook -i inventory/production playbooks/monitoring/elk-stack.yml \
+#     --ask-vault-pass --tags install
+
+- name: Deploy ELK Stack to monitoring servers
+  hosts: monitoring
+  become: true
+  vars_files:
+    - ../../group_vars/all/vault.yml
+  roles:
+    - elk-stack
+  tags: [elk, monitoring]
+
+- name: Deploy Filebeat agent to all managed servers
+  hosts: all
+  become: true
+  vars_files:
+    - ../../group_vars/all/vault.yml
+  tasks:
+    - name: Install Filebeat
+      ansible.builtin.package:
+        name: filebeat
+        state: present
+
+    - name: Configure Filebeat to ship to ELK
+      ansible.builtin.template:
+        src: ../../roles/elk-stack/templates/filebeat.yml.j2
+        dest: /etc/filebeat/filebeat.yml
+        owner: root
+        group: root
+        mode: '0600'
+      notify: Restart Filebeat
+
+    - name: Enable and start Filebeat
+      ansible.builtin.systemd:
+        name: filebeat
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Restart Filebeat
+      ansible.builtin.systemd:
+        name: filebeat
+        state: restarted

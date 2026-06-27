@@ -1,0 +1,9 @@
+ansible==9.*
+ansible-lint==6.*
+yamllint==1.*
+molecule==6.*
+molecule-docker==2.*
+pytest==8.*
+pytest-testinfra==10.*
+jmespath==1.*
+netaddr==1.*

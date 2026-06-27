@@ -1,0 +1,25 @@
+# Ansible
+*.retry
+.vagrant/
+*.pyc
+__pycache__/
+
+# Vault password files — NEVER commit these
+.vault_pass
+.vault_pass.txt
+vault_password_file
+
+# Molecule
+.molecule/
+
+# Reports
+reports/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+/tmp/

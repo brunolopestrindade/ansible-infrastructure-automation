@@ -1,0 +1,22 @@
+---
+# roles/security-hardening/defaults/main.yml
+
+ssh_port: 22
+management_network: "10.0.0.0/8"
+
+# CIS Benchmark kernel parameters
+kernel_hardening_params:
+  - { key: "net.ipv4.ip_forward",                   value: "0" }
+  - { key: "net.ipv4.conf.all.send_redirects",       value: "0" }
+  - { key: "net.ipv4.conf.default.send_redirects",   value: "0" }
+  - { key: "net.ipv4.conf.all.accept_redirects",     value: "0" }
+  - { key: "net.ipv6.conf.all.accept_redirects",     value: "0" }
+  - { key: "net.ipv4.conf.all.log_martians",         value: "1" }
+  - { key: "net.ipv4.icmp_echo_ignore_broadcasts",   value: "1" }
+  - { key: "net.ipv4.tcp_syncookies",                value: "1" }
+  - { key: "kernel.randomize_va_space",              value: "2" }
+  - { key: "fs.suid_dumpable",                       value: "0" }
+
+fail2ban_maxretry: 5
+fail2ban_bantime: 3600
+fail2ban_findtime: 600

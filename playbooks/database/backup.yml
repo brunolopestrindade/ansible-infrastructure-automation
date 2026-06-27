@@ -1,0 +1,34 @@
+---
+# database/backup.yml
+# Triggers an immediate database backup on all DB servers.
+# Normally run via cron (configured by the mysql-ha role),
+# but can be invoked manually before maintenance windows.
+#
+# Usage:
+#   ansible-playbook -i inventory/production playbooks/database/backup.yml \
+#     --ask-vault-pass
+
+- name: Run database backup
+  hosts: databases
+  become: true
+  vars_files:
+    - ../../group_vars/all/vault.yml
+    - ../../group_vars/databases/vars.yml
+  tasks:
+    - name: Run MySQL backup script
+      ansible.builtin.command:
+        cmd: /usr/local/bin/mysql-backup.sh
+      register: backup_result
+      changed_when: backup_result.rc == 0
+
+    - name: Show backup output
+      ansible.builtin.debug:
+        var: backup_result.stdout_lines
+
+    - name: Verify backup file exists and is non-empty
+      ansible.builtin.find:
+        paths: "{{ mysql_backup_dir }}"
+        patterns: "*.sql.gz"
+        age: "-10m"
+      register: recent_backups
+      failed_when: recent_backups.matched == 0

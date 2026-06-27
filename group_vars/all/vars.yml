@@ -1,0 +1,33 @@
+---
+# group_vars/all/vars.yml
+# Variables shared across all hosts and environments.
+
+# System
+system_timezone: "Europe/Lisbon"
+ops_user: "ansible-ops"
+
+# Common packages installed on every server
+common_packages:
+  - curl
+  - wget
+  - vim
+  - htop
+  - net-tools
+  - tcpdump
+  - nmap
+  - git
+  - unzip
+  - python3
+  - python3-pip
+  - rsync
+  - lsof
+
+# Internal DNS entries added to /etc/hosts
+internal_hosts:
+  - { ip: "{{ vault_elk_prod_01_ip }}", hostname: "elk.internal" }
+  - { ip: "{{ vault_db_prod_primary_ip }}", hostname: "db-primary.internal" }
+
+# SSH public keys authorised for ops_user
+# Add engineer keys here — never hardcode private keys
+ops_ssh_public_keys:
+  - "{{ vault_bruno_ssh_public_key }}"

@@ -1,0 +1,72 @@
+---
+# roles/common/tasks/main.yml
+# Baseline configuration applied to every managed server.
+# Idempotent — safe to run repeatedly.
+
+- name: Set system timezone
+  community.general.timezone:
+    name: "{{ system_timezone | default('Europe/Lisbon') }}"
+  tags: [common, timezone]
+
+- name: Ensure essential packages are installed
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+  tags: [common, packages]
+
+- name: Configure NTP synchronisation
+  ansible.builtin.template:
+    src: timesyncd.conf.j2
+    dest: /etc/systemd/timesyncd.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart timesyncd
+  tags: [common, ntp]
+
+- name: Enable and start systemd-timesyncd
+  ansible.builtin.systemd:
+    name: systemd-timesyncd
+    enabled: true
+    state: started
+  tags: [common, ntp]
+
+- name: Set up ops user with sudo access
+  ansible.builtin.user:
+    name: "{{ ops_user }}"
+    groups: sudo
+    shell: /bin/bash
+    state: present
+  tags: [common, users]
+
+- name: Deploy SSH authorised keys for ops user
+  ansible.posix.authorized_key:
+    user: "{{ ops_user }}"
+    state: present
+    key: "{{ item }}"
+  loop: "{{ ops_ssh_public_keys }}"
+  tags: [common, ssh]
+
+- name: Configure /etc/hosts entries
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ item.ip }} {{ item.hostname }}"
+    state: present
+  loop: "{{ internal_hosts | default([]) }}"
+  tags: [common, hosts]
+
+- name: Enable unattended security upgrades
+  ansible.builtin.package:
+    name: unattended-upgrades
+    state: present
+  tags: [common, security]
+
+- name: Configure unattended-upgrades
+  ansible.builtin.template:
+    src: 50unattended-upgrades.j2
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+  tags: [common, security]

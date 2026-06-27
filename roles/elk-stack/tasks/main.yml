@@ -1,0 +1,124 @@
+---
+# roles/elk-stack/tasks/main.yml
+# Deploys Elasticsearch, Logstash, and Kibana.
+# Designed for Ubuntu 22.04 / RHEL 8+.
+
+- name: Add Elastic GPG key
+  ansible.builtin.apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+  when: ansible_os_family == "Debian"
+  tags: [elk, install]
+
+- name: Add Elastic APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://artifacts.elastic.co/packages/{{ elk_version_major }}.x/apt stable main"
+    state: present
+    filename: elastic
+  when: ansible_os_family == "Debian"
+  tags: [elk, install]
+
+- name: Install Elasticsearch
+  ansible.builtin.package:
+    name: "elasticsearch={{ elk_version }}"
+    state: present
+  tags: [elk, elasticsearch, install]
+
+- name: Configure Elasticsearch
+  ansible.builtin.template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: root
+    group: elasticsearch
+    mode: '0660'
+  notify: Restart Elasticsearch
+  tags: [elk, elasticsearch, configure]
+
+- name: Configure Elasticsearch JVM heap
+  ansible.builtin.template:
+    src: jvm.options.j2
+    dest: /etc/elasticsearch/jvm.options.d/heap.options
+    owner: root
+    group: elasticsearch
+    mode: '0660'
+  notify: Restart Elasticsearch
+  tags: [elk, elasticsearch, configure]
+
+- name: Enable and start Elasticsearch
+  ansible.builtin.systemd:
+    name: elasticsearch
+    enabled: true
+    state: started
+  tags: [elk, elasticsearch]
+
+- name: Wait for Elasticsearch to be healthy
+  ansible.builtin.uri:
+    url: "http://localhost:9200/_cluster/health"
+    method: GET
+    status_code: 200
+  register: es_health
+  until: es_health.json.status in ['green', 'yellow']
+  retries: 12
+  delay: 10
+  tags: [elk, elasticsearch]
+
+- name: Install Logstash
+  ansible.builtin.package:
+    name: "logstash=1:{{ elk_version }}-1"
+    state: present
+  tags: [elk, logstash, install]
+
+- name: Deploy Logstash pipelines
+  ansible.builtin.template:
+    src: "logstash/{{ item }}.j2"
+    dest: "/etc/logstash/conf.d/{{ item }}"
+    owner: root
+    group: logstash
+    mode: '0640'
+  loop:
+    - 01-input-beats.conf
+    - 10-syslog.conf
+    - 20-application.conf
+    - 99-output-elasticsearch.conf
+  notify: Restart Logstash
+  tags: [elk, logstash, configure]
+
+- name: Enable and start Logstash
+  ansible.builtin.systemd:
+    name: logstash
+    enabled: true
+    state: started
+  tags: [elk, logstash]
+
+- name: Install Kibana
+  ansible.builtin.package:
+    name: "kibana={{ elk_version }}"
+    state: present
+  tags: [elk, kibana, install]
+
+- name: Configure Kibana
+  ansible.builtin.template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner: root
+    group: kibana
+    mode: '0660'
+  notify: Restart Kibana
+  tags: [elk, kibana, configure]
+
+- name: Enable and start Kibana
+  ansible.builtin.systemd:
+    name: kibana
+    enabled: true
+    state: started
+  tags: [elk, kibana]
+
+- name: Apply Index Lifecycle Management policies
+  ansible.builtin.uri:
+    url: "http://localhost:9200/_ilm/policy/{{ item.name }}"
+    method: PUT
+    body_format: json
+    body: "{{ item.policy }}"
+    status_code: [200, 201]
+  loop: "{{ elk_ilm_policies }}"
+  tags: [elk, elasticsearch, ilm]
