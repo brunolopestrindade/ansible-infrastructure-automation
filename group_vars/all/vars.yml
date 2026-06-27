@@ -24,8 +24,8 @@ common_packages:
 
 # Internal DNS entries added to /etc/hosts
 internal_hosts:
-  - {ip: "{{ vault_elk_prod_01_ip }}",hostname: "elk.internal"}
-  - {ip: "{{ vault_db_prod_primary_ip }}",hostname: "db-primary.internal"}
+  - {ip:"{{ vault_elk_prod_01_ip }}",hostname:"elk.internal"}
+  - {ip:"{{ vault_db_prod_primary_ip }}",hostname:"db-primary.internal"}
 
 # SSH public keys authorised for ops_user
 # Add engineer keys here — never hardcode private keys
