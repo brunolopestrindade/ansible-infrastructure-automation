@@ -5,12 +5,12 @@
 # To create the real vault:
 #   ansible-vault create group_vars/all/vault.yml
 
-# vault_web_prod_01_ip: "10.0.1.10"
-# vault_web_prod_02_ip: "10.0.1.11"
-# vault_db_prod_primary_ip: "10.0.2.10"
-# vault_db_prod_replica_ip: "10.0.2.11"
-# vault_elk_prod_01_ip: "10.0.3.10"
-# vault_bruno_ssh_public_key: "ssh-ed25519 AAAA..."
-# vault_mysql_root_password: "..."
-# vault_mysql_replication_password: "..."
-# vault_elasticsearch_password: "..."
+vault_web_prod_01_ip: "10.0.1.10"
+vault_web_prod_02_ip: "10.0.1.11"
+vault_db_prod_primary_ip: "10.0.2.10"
+vault_db_prod_replica_ip: "10.0.2.11"
+vault_elk_prod_01_ip: "10.0.3.10"
+vault_bruno_ssh_public_key: "ssh-ed25519 AAAA..."
+vault_mysql_root_password: "..."
+vault_mysql_replication_password: "..."
+vault_elasticsearch_password: "..."
