@@ -1,16 +1,6 @@
----
-# group_vars/all/vault.yml
-# THIS FILE IS ENCRYPTED WITH ANSIBLE VAULT IN PRODUCTION.
-# This is a placeholder showing the expected structure.
-# To create the real vault:
-#   ansible-vault create group_vars/all/vault.yml
-
-# vault_web_prod_01_ip: "10.0.1.10"
-# vault_web_prod_02_ip: "10.0.1.11"
-# vault_db_prod_primary_ip: "10.0.2.10"
-# vault_db_prod_replica_ip: "10.0.2.11"
-# vault_elk_prod_01_ip: "10.0.3.10"
-# vault_bruno_ssh_public_key: "ssh-ed25519 AAAA..."
-# vault_mysql_root_password: "..."
-# vault_mysql_replication_password: "..."
-# vault_elasticsearch_password: "..."
+$ANSIBLE_VAULT;1.1;AES256
+35376365663862613264313336343136626231623039396363363162363132616264353765633062
+3664623732623832373538356166326363383038333861300a613336353431373762316463386538
+36333330373033393238346138336136326636663366663261663635376339333035303532316537
+6338353439326632320a343061373937346661623266656430626334666639363133323134633831
+6666
